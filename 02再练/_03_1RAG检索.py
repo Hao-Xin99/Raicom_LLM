@@ -41,7 +41,9 @@ class QwenAgent():
             [text],
             return_tensors='pt'
         ).to(self.model.device)
-        #inouts是tokenizer函数返回的是一个类似字典{'input_ids':[batch,token_all],'attention_mask':[batch,token_all]}
+        #inputs是tokenizer函数返回的是一个类似字典{'input_ids':[batch,token_all],'attention_mask':[batch,token_all]}
+        #这里tokenizer如果text不加[]，返回的就是一个一维列表[token1,token2,...],如果加[]，返回的是二维[[token1,token2,...]]，加【】后就是（batch,token_total）的形状了
+        #这里需要加【】，因为我们要的就是二维，符合后续输入的形状要求
         generated=self.model.generate(
             **inputs,
             max_new_tokens=2048,
