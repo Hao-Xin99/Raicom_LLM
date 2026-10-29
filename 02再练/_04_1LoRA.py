@@ -88,7 +88,7 @@ if __name__=='__main__':
     from peft import LoraConfig,get_peft_model,TaskType
     lora_config=LoraConfig(
         task_type=TaskType.CAUSAL_LM,#因果语言构建
-        target_modules=['q_proj','v_proj','k_proj','o_proj'],#注入模型
+        target_modules=['q_proj','v_proj','k_proj','o_proj'],#注入模型的模块
         inference_mode=False,#训练模式,非推理
         r=8,    #LoRA的秩
         lora_alpha=32,
