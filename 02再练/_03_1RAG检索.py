@@ -21,7 +21,7 @@ class QwenAgent():
             str(MODEL_PATH),
             trust_remote_code=True,
             #device_map='auto',    #这个参数必须有accelerate库搭配,也可以直接像现在用to.(device平替)
-            dtype='auto'
+             dtype='auto'
             ).to(device)
         self.system_prompt=system_prompt
         self.messages=[
@@ -83,13 +83,21 @@ if __name__ == '__main__':
 
     chunks=text_splitter.split_text(text)
     '''
-    for idx,chunk in enumerate(chunks):
-        print(f'Chunk{idx}:{chunk}')
+    硬切方式:
+    def text_split(text:str,max_len=50):
+        chunks=[]
+        for c in [chunk.strip() for chunk in text.split(sep='\n') if chunk.strip()]:
+            while len(c)>max_len:
+                chunks.append(c[:max_len])
+                c=c[max_len:]
+            if c:
+                chunks.append(c)
+        return chunks
+    chunks=text_split(text=text)
     '''
 
     '''文本处理完,将文本转化为向量构建检索索引,这是RAG的重要步骤'''
     from sentence_transformers import SentenceTransformer
-    import numpy as np
     import faiss
     import pickle
 
@@ -99,12 +107,12 @@ if __name__ == '__main__':
     #对chunks的每一段进行编码
     embedded=Encode_model.encode(chunks)
     #单位化.
-    #faiss.normalize_L2(embedded)
-    embedded_norm=embedded/np.linalg.norm(embedded,axis=1,keepdims=True)
+    faiss.normalize_L2(embedded)
+    #embedded_norm=embedded/np.linalg.norm(embedded,axis=1,keepdims=True)
     #构建Faiss向量索引
-    dim=embedded_norm.shape[1]
+    dim=embedded.shape[1]
     faiss_index=faiss.IndexFlatIP(dim)
-    faiss_index.add(embedded_norm)
+    faiss_index.add(embedded)
 
     #保存向量索引和原始文档,方便后续读取,文档与向量索引对应
     faiss.write_index(faiss_index,'zhuzhiwu.faiss_idx')

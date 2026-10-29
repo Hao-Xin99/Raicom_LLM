@@ -8,14 +8,11 @@ C_model=SentenceTransformer(str(C_model_path))
 import faiss
 import  numpy as np
 Index_Path = Path(__file__).resolve().parent/'zhuzhiwu.faiss_idx'
+'''
+Index=faiss.read_index(str(Index_Path)) #faiss.read_index不接受中文路径!!!
+'''
 with open(Index_Path, 'rb') as f:                     # Python 的 open 认中文路径
     Index = faiss.deserialize_index(np.frombuffer(f.read(), dtype='uint8'))
-
-'''
-
-Index=faiss.read_index(str(Index_Path))
-faiss.read_index不接受中文路径!!!
-'''
 
 #加载与向量空间匹配的文本块:
 import pickle
@@ -32,7 +29,9 @@ def Ask_By_RAGagent(query:str,agent:QwenAgent,top_k:int=3):
     faiss.normalize_L2(query_embedding)
     #RAG检索,要用检索空间
     _,Idx =Index.search(query_embedding,k=top_k)
-    chosen=Idx[0][0]
+    #返回的时(Distance相似度,Index索引),两个的形状都是(问题数,k),Index是表示这条在向量对应chunks(文本形式)的索引位置
+    #问题数看query_embedding,如果是一维就是1,如果是二维数组,形状(问题数,一个问题编码的数),所以这里都取[0]
+    chosen=Idx[0][0]    #这里只选了第一个
     text_add=chunks[chosen]
     #根据检索到的生成增强型提示词
     query_rag=f'''

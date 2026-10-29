@@ -26,11 +26,11 @@ if __name__=='__main__':
     df=pd.read_json(json_path)
     #把df文件读做ds文件:
     ds=Dataset.from_pandas(df=df)
-    '''单个样例数据处理函数,生成模型训练所需的input_ids,attention_mask,labels'''
+    '''单个样例数据处理函数,把单条数据(对话)格式化,编码化,生成模型训练所需的input_ids,attention_mask,labels'''
     def process_eg(eg:dict):
         MAX_LENGTH=256
         #先把数据变为特定格式
-        instruction_part=(
+        instruction_part=(  #system里是固定人设,不能乱加,所以'instruction'和'input'都放user里
             '<|im_start|>system\n You are a helpful assistant.<|im_end>\n'
             f'<|im_start|>user\n{eg['instruction']}{eg['input']}<|im_end|>\n'
             '<|im_start|>assistant\n'
@@ -42,7 +42,7 @@ if __name__=='__main__':
         # 但要是加了[]变为二维[[token1,token2....]],相加后就变成了[[token1,...],[token1...]],不是需要的一整串token列表！！！
         instruction_ids=tokenizer(
             instruction_part,
-            add_special_tokens=False #我们已经加了分隔符了
+            add_special_tokens=False #这是一个完整问答,我们自己处理了
         )['input_ids']
         response_ids=tokenizer(
             response_part,
