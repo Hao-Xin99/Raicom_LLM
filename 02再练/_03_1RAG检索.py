@@ -21,7 +21,7 @@ class QwenAgent():
             str(MODEL_PATH),
             trust_remote_code=True,
             #device_map='auto',    #这个参数必须有accelerate库搭配,也可以直接像现在用to.(device平替)
-            torch_dtype='auto'
+            dtype='auto'
             ).to(device)
         self.system_prompt=system_prompt
         self.messages=[
@@ -34,9 +34,18 @@ class QwenAgent():
         text=self.tokenizer.apply_chat_template(
             self.messages,
             tokenize=False,
-            add_generation_prompt=True
+            add_generation_prompt=True            
         )
-        #text是apply_chat_template返回的纯文本
+        '''
+        text是apply_chat_template返回的一句纯文本(分段是因为\n):
+        <|im_start|>system\n
+        你是助手<|im_end|>
+        <|im_start|>user
+        你好<|im_end|>
+        <|im_start|>assistant
+        注意最后一行 assistant:add_generation_prompt=True 的作用就是在末尾补上“该你说了”的起始标记，模型会从该标记后继续生成。
+        '''
+       
         inputs=self.tokenizer(
             [text],
             return_tensors='pt'
